@@ -10,3 +10,6 @@
 #include <signal.h> 
 #include <fcntl.h>
 #include <errno.h>
+
+
+char ** parse_args(char * line); 
