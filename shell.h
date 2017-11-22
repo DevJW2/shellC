@@ -12,4 +12,4 @@
 #include <errno.h>
 
 
-char ** parse_args(char * line); 
+void ** parse_args(char * line); 

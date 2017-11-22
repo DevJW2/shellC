@@ -1,44 +1,38 @@
 #include "shell.h"
 
-
-
-char ** parse_args(char * line){
+void ** parse_args(char * line) {
   pid_t f = fork();
   
   printf("running parse_args\n");
-  if(f == 0){
+  if (f == 0) {
      printf("In child\n");
     
-     char ** s1 = (char **)calloc(6, sizeof(line));
+     char ** s = (char **)calloc(6, sizeof(line));
     
      int i = 0;
-     while(line){
-       s1[i] = strsep(&line, " ");
+     while(line) {
+       s[i] = strsep(&line, "\n");
        i++;
-    
      }
 
-     execvp(s1[0], s1);
-    
-  }
-  else if(f > 0){
-    printf("Parent terminated");
-    wait(0);
+     printf("Executing command...\n");
+     (execvp(s[0], s);
+  } else {
+    wait(NULL);
+    printf("Parent destroyed\n");
     exit(0);
   }
-  else{
-    printf("Fork failed\n");
-  }
+
   
 }
 
 
 
-int main(){
+int main() {
   char input[200];
   
   while(1){
-    printf("Enter Command: ");
+    printf("\nEnter Command: ");
     fgets(input, sizeof(input), stdin);
     printf("input value: %s\n", input);
 
