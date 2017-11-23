@@ -1,42 +1,61 @@
 #include "shell.h"
 
-void ** parse_args(char * line) {
-  pid_t f = fork();
-  
-  printf("running parse_args\n");
-  if (f == 0) {
-     printf("In child\n");
-    
-     char ** s = (char **)calloc(6, sizeof(line));
-    
-     int i = 0;
-     while(line) {
-       s[i] = strsep(&line, "\n");
-       i++;
-     }
+char ** parse_args(char * line) {
 
-     printf("Executing command...\n");
-     (execvp(s[0], s);
-  } else {
-    wait(NULL);
-    printf("Parent destroyed\n");
-    exit(0);
+  char ** s = (char **)calloc(6, sizeof(line));
+
+  
+  int i = 0;
+  while(line) {
+    s[i] = strsep(&line, " ");
+    printf("s[%d]: %s\n", i,s[i]);
+    i++;
   }
 
+  printf("\n");
+  return s;
   
+}
+
+void execute_commands(){
+  char input[100]; 
+  
+  printf("Enter Command: ");
+  fgets(input, sizeof(input), stdin);
+  printf("input: %s", input);
+
+  //get rid of newline...add null termination
+  size_t length = strlen(input);
+  if(input[length - 1] == '\n'){
+    input[length - 1] = '\0';
+  }
+
+  //command doesn't work, if there's a space added at the end.
+  
+  pid_t f = fork();
+  
+  if(f == 0){
+    printf("\nIn Child...\n");
+    
+    char ** args = parse_args(input);
+    execvp(args[0], args);
+    
+    printf("\nExecution Done!\n");
+    exit(0);
+  }
+  else{
+    printf("\nIn Parent...\n");
+    wait(0);
+    printf("\n--Child terminated--\n\n");
+
+  }
 }
 
 
 
 int main() {
-  char input[200];
-  
   while(1){
-    printf("\nEnter Command: ");
-    fgets(input, sizeof(input), stdin);
-    printf("input value: %s\n", input);
-
-    parse_args(input);
+    execute_commands();
     
   }
 
