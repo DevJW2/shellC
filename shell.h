@@ -12,4 +12,7 @@
 #include <errno.h>
 
 
-char ** parse_args(char * line); 
+char ** parse_args(char * line);
+char ** parse_commands(char * line);
+void execute_commands();
+

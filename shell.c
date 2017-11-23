@@ -17,15 +17,34 @@ char ** parse_args(char * line) {
   
 }
 
+char ** parse_commands(char * line){
+  char ** s = (char **)calloc(6, sizeof(line));
+
+  int i = 0;
+  while(line){
+    s[i] = strsep(&line, ";");
+    printf("s[%d]: %s\n", i,s[i]);
+    i++;
+  }
+
+  printf("\n");
+  return s;
+
+}
+
+
 void execute_commands(){
-  char input[100]; 
+  
+  char input[100];
   
   printf("Enter Command: ");
   fgets(input, sizeof(input), stdin);
   printf("input: %s", input);
 
+  
   //get rid of newline...add null termination
-  size_t length = strlen(input);
+  size_t length = strlen(input); 
+  
   if(input[length - 1] == '\n'){
     input[length - 1] = '\0';
   }
@@ -36,8 +55,12 @@ void execute_commands(){
   
   if(f == 0){
     printf("\nIn Child...\n");
+
     
     char ** args = parse_args(input);
+
+    //Loop through an array of commands
+    
     execvp(args[0], args);
     
     printf("\nExecution Done!\n");
