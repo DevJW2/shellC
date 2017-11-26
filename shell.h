@@ -10,8 +10,12 @@
 #include <signal.h> 
 #include <fcntl.h>
 #include <errno.h>
+#include <ctype.h>
 
-
+void sighandler(int signo);
+void exit_shell(char * line);
+int count_char(char c, char * line);
+void trim_whitespace(char * line);
 char ** parse_args(char * line);
 char ** parse_commands(char * line);
 void execute_commands();
