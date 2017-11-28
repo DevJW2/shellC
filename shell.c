@@ -72,12 +72,7 @@ char ** parse_commands(char * line) {
 void execute_commands() {
   
   char input[100];
-
-  // Token counter test
-  printf("TOKEN COUNT TEST\n");
-  char* s = "i have; a;; lot; of; semico;lons;";
-  printf("Char '%s' has %d semicolons\n", s, count_char(';', s));
-    
+  printf("______________________________________________________________________________________\n");  
   printf("Enter Command: ");
   fgets(input, sizeof(input), stdin);
   // Trim whitespace
@@ -93,27 +88,26 @@ void execute_commands() {
 
   //command doesn't work, if there's a space added at the end. -- FIXED
   
-  pid_t f = fork();
-  
-  if(f == 0){
-    printf("\nIn Child...\n");
-
+    char ** commands = parse_commands(input);
+    int value = 0;
     
-    char ** args = parse_args(input);
+    while(commands[value]){
+      pid_t f = fork();
+      
+      if (f == 0) {
+	char ** args = parse_args(commands[value]);
+	execvp(args[0], args);
 
-    //Loop through an array of commands
-    
-    execvp(args[0], args);
-    
-    printf("\nExecution Done!\n");
-    exit(0);
-  }
-  else{
-    printf("\nIn Parent...\n");
-    wait(0);
-    printf("\n--Child terminated--\n\n");
-
-  }
+	exit(0);
+      }
+      else {
+	printf("\nIn Parent...\n");
+	wait(0);
+	printf("\n--Child terminated--\n\n");
+	printf("______________________________________________________________________________________\n");
+	value++;
+      }
+    }
 }
 
 
