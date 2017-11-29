@@ -14,8 +14,7 @@
 
 void sighandler(int signo);
 void exit_shell(char * line);
-int count_char(char c, char * line);
-void trim_whitespace(char * line);
+char * trim_whitespace(char * cmd);
 char ** parse_args(char * line);
 char ** parse_commands(char * line);
 void execute_commands();

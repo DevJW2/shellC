@@ -10,32 +10,35 @@ void sighandler(int signo) {
 
 // Exit Shell
 void exit_shell(char * line) {
-}
-
-// Count numbers of tokens in line
-int count_char(char c, char * line) {
-  int ctr = 0;
-  // While line is not null
-  while (*line) {
-    // If character found
-    if (c == *line) {
-      ctr++;
-    }
-    line++;
+  if (strcmp(line, "exit") == 0) {
+    printf("\n\nExiting Shell...\n\n");
+    exit(0); 
   }
-  return ctr;
 }
 
-void trim_whitespace(char * line) {
-  // While line is not null
-  int len = strlen(line) - 1;
+// Trim whitespace before and after input
+char * trim_whitespace(char * cmd) {
+  char * end = cmd + strlen(cmd) - 1;
+  // Trim front - Not null and is space
+  while (*cmd && isspace(*cmd)) {
+    cmd++;
+  }
+  // Trim end - Set end spaces to null
+  while (isspace(*end) && end > cmd) {
+    *end-- = '\0';
+  }
+  // Only trims end
+  /*
+  int len = strlen(cmd) - 1;
   while (len >= 0) {
-    if (isspace(line[len]) && !isspace(line[len-1])) {
-      line[len] = '\0';
+    if (isspace(cmd[len]) && !isspace(cmd[len-1])) {
+      cmd[len] = '\0';
       return;
     }
     len--;
   }
+  */
+  return cmd;
 }
 
 char ** parse_args(char * line) {
@@ -72,12 +75,16 @@ char ** parse_commands(char * line) {
 void execute_commands() {
   
   char input[100];
-  printf("______________________________________________________________________________________\n");  
+  printf("_______________________________________________________________\n");  
   printf("Enter Command: ");
   fgets(input, sizeof(input), stdin);
-  // Trim whitespace
-  trim_whitespace(input);
   printf("input: %s", input);
+
+  // Exit
+  exit_shell(input);
+
+  // Change Directory
+  //cd(input);
   
   //get rid of newline...add null termination
   size_t length = strlen(input); 
@@ -88,26 +95,29 @@ void execute_commands() {
 
   //command doesn't work, if there's a space added at the end. -- FIXED
   
-    char ** commands = parse_commands(input);
-    int value = 0;
+  char ** commands = parse_commands(input);
+  int value = 0;
     
-    while(commands[value]){
-      pid_t f = fork();
-      
-      if (f == 0) {
-	char ** args = parse_args(commands[value]);
-	execvp(args[0], args);
+  while(commands[value]){
+    pid_t f = fork();
 
-	exit(0);
-      }
-      else {
-	printf("\nIn Parent...\n");
-	wait(0);
-	printf("\n--Child terminated--\n\n");
-	printf("______________________________________________________________________________________\n");
-	value++;
-      }
+    // Trim whitespace
+    char * cmd = trim_whitespace(commands[value]);
+      
+    if (f == 0) {
+      char ** args = parse_args(cmd);
+      execvp(args[0], args);
+
+      exit(0);
     }
+    else {
+      printf("\nIn Parent...\n");
+      wait(0);
+      printf("\n--Child terminated--\n\n");
+      printf("_______________________________________________________________\n");
+      value++;
+    }
+  }
 }
 
 
