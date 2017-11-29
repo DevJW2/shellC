@@ -27,17 +27,6 @@ char * trim_whitespace(char * cmd) {
   while (isspace(*end) && end > cmd) {
     *end-- = '\0';
   }
-  // Only trims end
-  /*
-  int len = strlen(cmd) - 1;
-  while (len >= 0) {
-    if (isspace(cmd[len]) && !isspace(cmd[len-1])) {
-      cmd[len] = '\0';
-      return;
-    }
-    len--;
-  }
-  */
   return cmd;
 }
 
@@ -71,6 +60,35 @@ char ** parse_commands(char * line) {
   return s;
 
 }
+
+void redirect(char ** line){
+  int count = 0; 
+
+  printf("Execute redirection");
+  /*
+    while(line[count]){
+      count++; 
+    }
+    if(count == 3){
+      int new_file = open(line[count - 1], O_CREAT | O_WRONLY | O_RDONLY, 0644);
+      dup2(new_file, 0);
+    }
+  
+  */
+  //int file = open("filename", 0_CREAT | 0_WRONLY | 0_RDONLY, 0644);
+  // dup2(file, 0); > : reading from STDIN, outputting to file
+
+
+  //check user input
+  //make sure there is a command in front
+  //make sure there is a redirection symbol
+  //make sure there is a file at the end
+
+  //wait for further commands to input into file
+  
+  
+}
+
 
 void execute_commands() {
   
@@ -106,9 +124,26 @@ void execute_commands() {
       
     if (f == 0) {
       char ** args = parse_args(cmd);
-      execvp(args[0], args);
+      int count = 0; 
+      while(args[count]){
+	count++;
+      }
+
+      printf("Argument number: %d\n\n", count);
+      if(count > 2){
+	if(!strcmp(args[1], ">")){
+	  redirect(args);
+	}
+	else{
+	  execvp(args[0], args);
+	}
+      }
+      else{
+	execvp(args[0], args);
+      }
 
       exit(0);
+      
     }
     else {
       printf("\nIn Parent...\n");
