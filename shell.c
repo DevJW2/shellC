@@ -62,31 +62,30 @@ char ** parse_commands(char * line) {
 }
 
 void redirect(char ** line){
-  int count = 0; 
 
-  printf("Execute redirection");
-  /*
-    while(line[count]){
-      count++; 
-    }
-    if(count == 3){
-      int new_file = open(line[count - 1], O_CREAT | O_WRONLY | O_RDONLY, 0644);
-      dup2(new_file, 0);
-    }
-  
-  */
-  //int file = open("filename", 0_CREAT | 0_WRONLY | 0_RDONLY, 0644);
-  // dup2(file, 0); > : reading from STDIN, outputting to file
+  printf("Execute redirection\n");
+ 
+  int new_file = open(line[2], O_CREAT | O_WRONLY | O_RDONLY, 0644);
+  //dup2(new_file, 1);
 
+  char input[100];
+            
+  printf("Redirection Input: ");
+  int count = 0;
+  while(1){ 
+    fgets(input, sizeof(input), stdin);
+    write(new_file, input, sizeof(input));
+  }
+ 
+  close(new_file);
 
+  printf("Finish execution\n");
   //check user input
   //make sure there is a command in front
   //make sure there is a redirection symbol
   //make sure there is a file at the end
 
   //wait for further commands to input into file
-  
-  
 }
 
 
@@ -130,7 +129,7 @@ void execute_commands() {
       }
 
       printf("Argument number: %d\n\n", count);
-      if(count > 2){
+      if(count == 3){
 	if(!strcmp(args[1], ">")){
 	  redirect(args);
 	}
