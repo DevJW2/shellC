@@ -8,11 +8,27 @@ void sighandler(int signo) {
   }
 }
 
+// Print Current Directory
+void print_current_dir() {
+  char dir[512];
+  getcwd(dir, sizeof(dir));
+  printf("%s $ ", dir);
+}
+
 // Exit Shell
 void exit_shell(char * line) {
-  if (strcmp(line, "exit") == 0) {
+  if (!strcmp(line, "exit")) {
     printf("\n\nExiting Shell...\n\n");
     exit(0); 
+  }
+}
+
+// Change Directory
+void cd(char ** line) {
+  if (!strcmp(line[0], "cd") && line[1]) {
+    chdir(line[1]);
+    printf("Directory Changed To...\n");
+    print_current_dir();
   }
 }
 
@@ -93,15 +109,9 @@ void execute_commands() {
   
   char input[100];
   printf("_______________________________________________________________\n");  
-  printf("Enter Command: ");
+  print_current_dir();
   fgets(input, sizeof(input), stdin);
   printf("input: %s", input);
-
-  // Exit
-  exit_shell(input);
-
-  // Change Directory
-  //cd(input);
   
   //get rid of newline...add null termination
   size_t length = strlen(input); 
@@ -109,20 +119,27 @@ void execute_commands() {
   if(input[length - 1] == '\n'){
     input[length - 1] = '\0';
   }
-
-  //command doesn't work, if there's a space added at the end. -- FIXED
   
   char ** commands = parse_commands(input);
   int value = 0;
     
   while(commands[value]){
-    pid_t f = fork();
 
     // Trim whitespace
     char * cmd = trim_whitespace(commands[value]);
-      
+
+    // Exit Check
+    exit_shell(cmd);
+    
+    char ** args = parse_args(cmd);
+   
+    // Change Directory Check
+    cd(args);
+    
+    pid_t f = fork();
+    
     if (f == 0) {
-      char ** args = parse_args(cmd);
+     
       int count = 0; 
       while(args[count]){
 	count++;
