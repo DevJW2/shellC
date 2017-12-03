@@ -19,6 +19,6 @@ char * trim_whitespace(char * cmd);
 char ** parse_args(char * line, char * chr);
 char ** parse_commands(char * line);
 void redirect(char * line, char direction);
+void piper(char * line);
+void execute_commands(char ** commands);
 void sighandler(int signo);
-void execute_commands();
-

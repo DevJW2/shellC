@@ -11,7 +11,7 @@ void print_current_dir() {
 // Exit Shell
 void exit_shell(char * line) {
   if (!strcmp(line, "exit")) {
-    printf("\n\nExiting Shell...\n\n");
+    //printf("\n\nExiting Shell...\n\n");
     exit(0); 
   }
 }
@@ -39,6 +39,7 @@ char * trim_whitespace(char * cmd) {
   return cmd;
 }
 
+// Parse arguments on specific char
 char ** parse_args(char * line, char * chr) {
 
   char ** s = (char **)calloc(6, sizeof(line));
@@ -46,6 +47,7 @@ char ** parse_args(char * line, char * chr) {
   int i = 0;
   while(line) {
     s[i] = strsep(&line, chr);
+    s[i] = trim_whitespace(s[i]);
     //printf("s[%d]: %s\n", i,s[i]);
     i++;
   }
@@ -71,45 +73,56 @@ char ** parse_commands(char * line) {
 }
 
 void redirect(char * line, char direction) {
-
-  printf("Execute redirection %c\n", direction);
-  int new_file, copy_file, old_file;
+  int new_file, stdin, old_file;
   char ** args;
   // >
   if (direction == '>') {
     // Parse on >
     args = parse_args(line, ">");
-    // Create new file and copy
+
+    // Create new file as write only
     new_file = open(trim_whitespace(args[1]), O_CREAT | O_WRONLY, 0644);
-    copy_file = dup(STDOUT_FILENO);
-    old_file = dup2(new_file, STDOUT_FILENO);
+    stdin = dup(STDOUT_FILENO);
+    old_file = dup2(new_file, stdin);
     
+  } else if (direction == '<') {
+    // Parse on <
+    args = parse_args(line, "<");
+
+    // Open file as read only and check if successful
+    new_file = open(trim_whitespace(args[1]), O_RDONLY, 0644);
+    if (new_file != -1) {
+      stdin = dup(STDOUT_FILENO);
+      old_file = dup2(new_file, stdin);
+    }
   }
+  close(new_file);
 }
 
+// Pipes
+void piper(char * line) {
+  int new_file, stdin, old_file;
+  char ** command;
+  char ** args = parse_args(line, "|");
+  FILE *fp = popen(args[0], "r");
+  stdin = dup(STDIN_FILENO);
+  old_file = dup2(fileno(fp), STDIN_FILENO);
+  command = parse_args(trim_whitespace(args[1]), " ");
+  execute_commands(command);
+  dup2(stdin, stdin);
+  pclose(fp);
+  free(command);
+  free(args);
+}
 
-void execute_commands() {
-  
-  char input[100];
-  print_current_dir();
-  fgets(input, sizeof(input), stdin);
-  //printf("input: %s", input);
-  
-  //get rid of newline...add null termination
-  size_t length = strlen(input); 
-  
-  if(input[length - 1] == '\n'){
-    input[length - 1] = '\0';
-  }
-  
-  char ** commands = parse_commands(input);
+// Execute specified command
+void execute_commands(char ** commands) {
   int value = 0;
-    
   while(commands[value]){
-
+    
     // Trim whitespace
     char * cmd = trim_whitespace(commands[value]);
-
+    
     // Exit Check
     exit_shell(cmd);
 
@@ -122,7 +135,7 @@ void execute_commands() {
 
     // Check If Piping
     if (strchr(cmd, '|')) {
-      printf("PIPIN");
+      piper(cmd);
     }
 		      
     char ** args = parse_args(cmd, " ");
@@ -145,6 +158,20 @@ void execute_commands() {
   }
 }
 
+// Get Input
+char * get_input() {
+  char * input = malloc(256);
+  fgets(input, 256, stdin);
+  
+  size_t length = strlen(input); 
+
+  if (input[length - 1] == '\n') {
+    input[length - 1] = '\0';
+  }
+
+  return input;
+}
+
 // Signal Handler
 void sighandler(int signo) {
   if (signo == SIGINT) {
@@ -159,7 +186,11 @@ int main() {
   signal(SIGINT, sighandler);
   while(1){
     printf("\n");
-    execute_commands();
+    print_current_dir();
+    char * input = get_input();
+    char ** commands = parse_commands(input);
+    execute_commands(commands);
+    free(input);
   }
 
   return 0;
