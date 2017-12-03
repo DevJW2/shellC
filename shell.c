@@ -1,18 +1,11 @@
 #include "shell.h"
 
-// Signal Handler
-void sighandler(int signo) {
-  if (signo == SIGINT) {
-    printf("\n\n\nShell exiting due to SIGINT...\n\n");
-    exit(0);
-  }
-}
 
 // Print Current Directory
 void print_current_dir() {
   char dir[512];
   getcwd(dir, sizeof(dir));
-  printf("%s $ ", dir);
+  printf("%s$ ", dir);
 }
 
 // Exit Shell
@@ -27,8 +20,8 @@ void exit_shell(char * line) {
 void cd(char ** line) {
   if (!strcmp(line[0], "cd") && line[1]) {
     chdir(line[1]);
-    printf("Directory Changed To...\n");
-    print_current_dir();
+    //printf("Directory Changed To...\n");
+    //print_current_dir();
   }
 }
 
@@ -46,18 +39,18 @@ char * trim_whitespace(char * cmd) {
   return cmd;
 }
 
-char ** parse_args(char * line) {
+char ** parse_args(char * line, char * chr) {
 
   char ** s = (char **)calloc(6, sizeof(line));
 
   int i = 0;
   while(line) {
-    s[i] = strsep(&line, " ");
-    printf("s[%d]: %s\n", i,s[i]);
+    s[i] = strsep(&line, chr);
+    //printf("s[%d]: %s\n", i,s[i]);
     i++;
   }
 
-  printf("\n");
+  //printf("\n");
   return s;
   
 }
@@ -68,7 +61,7 @@ char ** parse_commands(char * line) {
   int i = 0;
   while(line){
     s[i] = strsep(&line, ";");
-    printf("s[%d]: %s\n", i,s[i]);
+    //printf("s[%d]: %s\n", i,s[i]);
     i++;
   }
 
@@ -77,41 +70,30 @@ char ** parse_commands(char * line) {
 
 }
 
-void redirect(char ** line){
+void redirect(char * line, char direction) {
 
-  printf("Execute redirection\n");
- 
-  int new_file = open(line[2], O_CREAT | O_WRONLY | O_RDONLY, 0644);
-  //dup2(new_file, 1);
-
-  char input[100];
-            
-  printf("Redirection Input: ");
-  int count = 0;
-  while(1){ 
-    fgets(input, sizeof(input), stdin);
-    write(new_file, input, sizeof(input));
+  printf("Execute redirection %c\n", direction);
+  int new_file, copy_file, old_file;
+  char ** args;
+  // >
+  if (direction == '>') {
+    // Parse on >
+    args = parse_args(line, ">");
+    // Create new file and copy
+    new_file = open(trim_whitespace(args[1]), O_CREAT | O_WRONLY, 0644);
+    copy_file = dup(STDOUT_FILENO);
+    old_file = dup2(new_file, STDOUT_FILENO);
+    
   }
- 
-  close(new_file);
-
-  printf("Finish execution\n");
-  //check user input
-  //make sure there is a command in front
-  //make sure there is a redirection symbol
-  //make sure there is a file at the end
-
-  //wait for further commands to input into file
 }
 
 
 void execute_commands() {
   
   char input[100];
-  printf("_______________________________________________________________\n");  
   print_current_dir();
   fgets(input, sizeof(input), stdin);
-  printf("input: %s", input);
+  //printf("input: %s", input);
   
   //get rid of newline...add null termination
   size_t length = strlen(input); 
@@ -130,8 +112,20 @@ void execute_commands() {
 
     // Exit Check
     exit_shell(cmd);
-    
-    char ** args = parse_args(cmd);
+
+    // Check If Redirecting
+    if (strchr(cmd, '>')) {
+      redirect(cmd, '>');
+    } else if (strchr(cmd, '<')) {
+      redirect(cmd, '<');
+    }
+
+    // Check If Piping
+    if (strchr(cmd, '|')) {
+      printf("PIPIN");
+    }
+		      
+    char ** args = parse_args(cmd, " ");
    
     // Change Directory Check
     cd(args);
@@ -139,44 +133,32 @@ void execute_commands() {
     pid_t f = fork();
     
     if (f == 0) {
-     
-      int count = 0; 
-      while(args[count]){
-	count++;
-      }
 
-      printf("Argument number: %d\n\n", count);
-      if(count == 3){
-	if(!strcmp(args[1], ">")){
-	  redirect(args);
-	}
-	else{
-	  execvp(args[0], args);
-	}
-      }
-      else{
-	execvp(args[0], args);
-      }
-
+      execvp(args[0], args);
       exit(0);
       
-    }
-    else {
-      printf("\nIn Parent...\n");
-      wait(0);
-      printf("\n--Child terminated--\n\n");
-      printf("_______________________________________________________________\n");
+    } else {
+      int status;
+      wait(&status);
       value++;
     }
   }
 }
 
+// Signal Handler
+void sighandler(int signo) {
+  if (signo == SIGINT) {
+    printf("\n");
+    print_current_dir();
+    fflush(stdout);
+  }
+}
 
 
 int main() {
   signal(SIGINT, sighandler);
-   
   while(1){
+    printf("\n");
     execute_commands();
   }
 

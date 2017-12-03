@@ -12,13 +12,13 @@
 #include <errno.h>
 #include <ctype.h>
 
-void sighandler(int signo);
 void print_current_dir();
 void exit_shell(char * line);
 void cd(char ** line);
 char * trim_whitespace(char * cmd);
-char ** parse_args(char * line);
+char ** parse_args(char * line, char * chr);
 char ** parse_commands(char * line);
-void redirect(char ** line);
+void redirect(char * line, char direction);
+void sighandler(int signo);
 void execute_commands();
 
