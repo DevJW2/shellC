@@ -21,4 +21,6 @@ char ** parse_commands(char * line);
 void redirect(char * line, char direction);
 void piper(char * line);
 void execute_commands(char ** commands);
+void execute_input(char * input);
+char * get_input();
 void sighandler(int signo);
