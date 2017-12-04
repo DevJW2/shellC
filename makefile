@@ -1,11 +1,13 @@
-all: shell.c
-	gcc -o shelling shell.c
-
-run: all
+shelling: shell.o main.o
+	gcc -o shelling shell.o main.o
+shell.o: shell.c
+	gcc -c shell.c
+main.o: main.c
+	gcc -c main.c
+run: shelling
 	./shelling
-
 clean:
-	rm shelling
 	rm *.o
-	rm *~
+
+
 

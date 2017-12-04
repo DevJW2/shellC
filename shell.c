@@ -119,7 +119,6 @@ void redirect(char * line, char direction) {
   char ** args;
   // >
   if (direction == '>') {
-    
     // Parse on >
     args = parse_args(line, ">");
     //printf("%s", line);
@@ -128,11 +127,11 @@ void redirect(char * line, char direction) {
       new_file = open(trim_whitespace(args[1]), O_CREAT | O_WRONLY, 0644);
       stdin = dup(STDOUT_FILENO);
       old_file = dup2(new_file, STDOUT_FILENO);
+      
     }
     close(new_file);
         
   } else if (direction == '<') {
-    
     // Parse on <
     args = parse_args(line, "<");
     
@@ -141,14 +140,14 @@ void redirect(char * line, char direction) {
     
     if (args[1]) {
       new_file = open(trim_whitespace(args[1]), O_RDONLY, 0644);
-      stdin = dup(STDOUT_FILENO);
-      old_file = dup2(new_file, STDOUT_FILENO);
-      close(new_file);
+      stdin = dup(STDIN_FILENO);
+      old_file = dup2(new_file, STDIN_FILENO);
+      
     }
+    close(new_file);
     
   }
 
-  
   
 }
 
@@ -166,7 +165,7 @@ void piper(char * line) {
   old_file = dup2(fileno(fp), STDIN_FILENO);
   command = parse_args(trim_whitespace(args[1]), " ");
   execute_commands(command);
-  dup2(stdin, stdin);
+  dup2(stdin, STDIN_FILENO);
   pclose(fp);
   free(command);
   free(args);
@@ -223,7 +222,7 @@ void execute_input(char * input) {
       char ** args = parse_args(commands[i], " ");
       execute_commands(args);
       free(args);
-    }
+      }
     i++;
   }
   free(commands);
@@ -259,15 +258,3 @@ void sighandler(int signo) {
   }
 }
 
-int main() {
-  signal(SIGINT, sighandler);
-  while(1){
-    printf("\n");
-    print_current_dir();
-    char * input = get_input();
-    execute_input(input);
-    free(input);
-  }
-
-  return 0;
-}
