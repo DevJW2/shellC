@@ -97,6 +97,14 @@ char ** parse_commands(char * line) {
 
 }
 
+int size(char ** args){
+  int i = 0;
+  while(* args++){
+    i++;
+  }
+  return i;
+}
+
 /* void redirect(char * line, char direction)
 Input: char * line, char direction
 Returns: None
@@ -115,27 +123,33 @@ void redirect(char * line, char direction) {
     // Parse on >
     args = parse_args(line, ">");
     //printf("%s", line);
-    
     // Create new file as write only
-    new_file = open(trim_whitespace(args[1]), O_CREAT | O_WRONLY, 0644);
-    stdin = dup(STDOUT_FILENO);
-    old_file = dup2(new_file, stdin);
+    if(args[1]){
+      new_file = open(trim_whitespace(args[1]), O_CREAT | O_WRONLY, 0644);
+      stdin = dup(STDOUT_FILENO);
+      old_file = dup2(new_file, STDOUT_FILENO);
+    }
     close(new_file);
         
   } else if (direction == '<') {
     
     // Parse on <
     args = parse_args(line, "<");
+    
 
     // Open file as read only and check if successful
-    new_file = open(trim_whitespace(args[1]), O_RDONLY, 0644);
-    if (new_file != -1) {
+    
+    if (args[1]) {
+      new_file = open(trim_whitespace(args[1]), O_RDONLY, 0644);
       stdin = dup(STDOUT_FILENO);
-      old_file = dup2(new_file, stdin);
+      old_file = dup2(new_file, STDOUT_FILENO);
       close(new_file);
     }
     
   }
+
+  
+  
 }
 
 /* void piper(char * line)
@@ -183,8 +197,8 @@ void execute_commands(char ** commands) {
   }
 }
 
-/* void execute_commands(char ** commands)
-Input: char ** commands
+/* void execute_input(char * input)
+Input: char * input
 Returns: None
 Description: Check for redirection or piping, execute_commands otherwise
 */
@@ -233,7 +247,7 @@ char * get_input() {
   return input;
 }
 
-/* char * get_input()
+/* void sighandler(int signo)
 Input: int signo
 Description: Prints current working directory and flushes stdout buffer
 */
