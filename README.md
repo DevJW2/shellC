@@ -2,16 +2,18 @@
 by Jeffrey Weng, Marcus Ng
 
 ### Features:
-* Fork and Execution of commands
-* Command parsing, commands are separated by semicolons(;)
-* Redirection using > and <
-* Simple Piping using |
+* Fork and execution of commands
+* Command parsing, commands are separated by semicolons
+* Simple redirection using > and <
+* Simple piping using |
+* Change directory
+* Exit shell
 
 ### Attempted to Implement:
-null...
 
 ### Bugs:
-Redirection isn't currently working
+- If you tap C-d in the shell, the shell prompt keeps printing
+- Shell prompt prints a lot during stdin redirection
 
 ### Files & Function Headers:
 

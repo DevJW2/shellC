@@ -9,5 +9,5 @@ int main(){
     execute_input(input);
     free(input);
   }
-
+  return 0;
 }

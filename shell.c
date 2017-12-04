@@ -30,11 +30,9 @@ Returns: None
 Description: Uses chdir() to change directory
 */
 void cd(char ** line) {
-  if (!strcmp(line[0], "cd") && line[1]) {
     chdir(line[1]);
     //printf("Directory Changed To...\n");
     //print_current_dir();
-  }
 }
 
 /* char * trim_whitespace(char * cmd)
@@ -68,7 +66,7 @@ char ** parse_args(char * line, char * chr) {
   while(line) {
     s[i] = strsep(&line, chr);
     s[i] = trim_whitespace(s[i]);
-    printf("s[%d]: %s\n", i,s[i]);
+    //printf("s[%d]: %s\n", i,s[i]);
     i++;
   }
 
@@ -97,14 +95,6 @@ char ** parse_commands(char * line) {
 
 }
 
-int size(char ** args){
-  int i = 0;
-  while(* args++){
-    i++;
-  }
-  return i;
-}
-
 /* void redirect(char * line, char direction)
 Input: char * line, char direction
 Returns: None
@@ -115,22 +105,22 @@ If <, then the function opens an existing file and uses dup2
 to redirect stdin into the open file.
 */
 void redirect(char * line, char direction) {
-  int new_file, stdin, old_file;
+  int new_f, std, old_f;
   char ** args;
-  // >
   if (direction == '>') {
     // Parse on >
     args = parse_args(line, ">");
     //printf("%s", line);
     // Create new file as write only
     if(args[1]){
-      new_file = open(trim_whitespace(args[1]), O_CREAT | O_WRONLY, 0644);
-      stdin = dup(STDOUT_FILENO);
-      old_file = dup2(new_file, STDOUT_FILENO);
-      
-    }
-    close(new_file);
-        
+      new_f = open(trim_whitespace(args[1]), O_CREAT | O_WRONLY, 0644);
+      std = dup(STDOUT_FILENO);
+      old_f = dup2(new_f, STDOUT_FILENO);
+      args = parse_args(line, " ");
+      execute_commands(args);
+      free(args);
+      dup2(std, old_f);
+    }   
   } else if (direction == '<') {
     // Parse on <
     args = parse_args(line, "<");
@@ -139,16 +129,12 @@ void redirect(char * line, char direction) {
     // Open file as read only and check if successful
     
     if (args[1]) {
-      new_file = open(trim_whitespace(args[1]), O_RDONLY, 0644);
-      stdin = dup(STDIN_FILENO);
-      old_file = dup2(new_file, STDIN_FILENO);
-      
+      new_f = open(trim_whitespace(args[1]), O_RDONLY, 0644);
+      std = dup(STDIN_FILENO);
+      old_f = dup2(new_f, STDIN_FILENO);
     }
-    close(new_file);
-    
   }
-
-  
+  close(new_f); 
 }
 
 /* void piper(char * line)
@@ -183,8 +169,11 @@ void execute_commands(char ** commands) {
   exit_shell(commands[0]);
    
   // Change Directory Check
-  cd(commands);
-    
+  if (!strcmp(commands[0], "cd") && commands[1]) {
+    cd(commands);
+    return;
+  }
+  
   pid_t f = fork();
     
   if (f == 0) { // Child
@@ -209,16 +198,16 @@ void execute_input(char * input) {
     char * cmd = trim_whitespace(commands[i]);
      // Check If Redirecting
     if (strchr(cmd, '>')) {
-      printf("Redirect >\n");
+      //printf("Redirect >\n");
       redirect(cmd, '>');
     } else if (strchr(cmd, '<')) {
-      printf("Redirect <\n");
+      //printf("Redirect <\n");
       redirect(cmd, '<');
     } else if (strchr(cmd, '|')) { // Check If Piping
-      printf("Pipe\n");
+      //printf("Pipe\n");
       piper(cmd);
     } else {
-      printf("Execute Command\n");
+      //printf("Execute Command\n");
       char ** args = parse_args(commands[i], " ");
       execute_commands(args);
       free(args);
